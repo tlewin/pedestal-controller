@@ -1,11 +1,22 @@
-/target
-/classes
-/checkouts
+# Dependencies
 pom.xml
 pom.xml.asc
+
+# Building artifacts
 *.jar
 *.class
 /.lein-*
 /.nrepl-port
+/target
+/checkouts
+/classes
+
+# Mercurial
 .hgignore
 .hg/
+
+# General
+.DS_Store
+
+# IDE
+.vscode/*
