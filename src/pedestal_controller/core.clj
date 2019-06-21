@@ -21,43 +21,30 @@
     (coll? v) v
     :else [v]))
 
-(defn- fail!
-  [message]
-  (throw (Exception. message)))
-
-(defn- validate-interceptors-params!
-  [params]
-  (when (not= (count params) 1)
-    (fail! "Invalid arguments for interceptors: (interceptors [...]).")))
-
-(defn- validate-handler-params!
-  [params]
-  (when (not= (count params) 2)
-    (fail! "Invalid arguments for handler: (handler handler-name handler-fn).")))
-
 (defn- reduce-controller-settings
   [settings]
   (reduce
    (fn [[interceptors handlers] [item & params]]
      (case item
        interceptors
-       (if (empty? interceptors)
-         (do
-           (validate-interceptors-params! params)
-           [(collify (first params)) handlers])
-         (fail! "interceptors is defined more than once."))
+       (do
+         (assert (empty? interceptors)
+                 "interceptors is defined more than once.")
+         (assert (= (count params) 1)
+                 "Invalid arguments for interceptors: (interceptors [...]).")
+         [(collify (first params)) handlers])
 
        handler
        (let [[handler-name handler-fn] params
              handler-name              (keyword handler-name)]
-         (if (contains? handlers handler-name)
-           (fail! (str handler-name " is already defined."))
-           (do
-             (validate-handler-params! params)
-             [interceptors (assoc handlers handler-name handler-fn)])))
+         (assert (not (contains? handlers handler-name))
+                 (str handler-name " is already defined."))
+         (assert (= (count params) 2)
+                 "Invalid arguments for handler: (handler handler-name handler-fn).")
+         [interceptors (assoc handlers handler-name handler-fn)])
 
        ;; Anything else
-       (fail! (str item " is an unknown setting."))))
+       (assert false (str item " is an unknown setting."))))
    ;; [Interceptors Handlers]
    [[] {}]
    settings))

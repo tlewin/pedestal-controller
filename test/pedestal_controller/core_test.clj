@@ -6,7 +6,7 @@
 (deftest test-defcontroller
   (testing "validates already defined interceptor"
     (is (macro-thrown-with-msg?
-         Exception
+         AssertionError
          #"interceptors is defined more than once."
          (binding [*ns* (find-ns 'pedestal-controller.core)]
            (eval '(defcontroller Invalid
@@ -14,21 +14,21 @@
                     (interceptors [:b])))))))
   (testing "validates missing argument for interceptors"
     (is (macro-thrown-with-msg?
-         Exception
+         AssertionError
          #"Invalid arguments for interceptors"
          (binding [*ns* (find-ns 'pedestal-controller.core)]
            (eval '(defcontroller Invalid
                     (interceptors)))))))
   (testing "validates trailing argument for interceptors"
     (is (macro-thrown-with-msg?
-         Exception
+         AssertionError
          #"Invalid arguments for interceptors"
          (binding [*ns* (find-ns 'pedestal-controller.core)]
            (eval '(defcontroller Invalid
                     (interceptors :a :b)))))))
   (testing "validates already defined handler"
     (is (macro-thrown-with-msg?
-         Exception
+         AssertionError
          #":h1 is already defined."
          (binding [*ns* (find-ns 'pedestal-controller.core)]
            (eval '(defcontroller Invalid
@@ -36,28 +36,28 @@
                     (handler :h1 identity)))))))
   (testing "validates missing argument for handler - 1"
     (is (macro-thrown-with-msg?
-         Exception
+         AssertionError
          #"Invalid arguments for handler"
          (binding [*ns* (find-ns 'pedestal-controller.core)]
            (eval '(defcontroller Invalid
                     (handler)))))))
   (testing "validates missing argument for handler - 2"
     (is (macro-thrown-with-msg?
-         Exception
+         AssertionError
          #"Invalid arguments for handler"
          (binding [*ns* (find-ns 'pedestal-controller.core)]
            (eval '(defcontroller Invalid
                     (handler :h1)))))))
   (testing "validates trailing argument for handler"
     (is (macro-thrown-with-msg?
-         Exception
+         AssertionError
          #"Invalid arguments for handler"
          (binding [*ns* (find-ns 'pedestal-controller.core)]
            (eval '(defcontroller Invalid
                     (handler :h1 identity :extra)))))))
   (testing "validates invalid controller setting"
     (is (macro-thrown-with-msg?
-         Exception
+         AssertionError
          #"typo is an unknown setting."
          (binding [*ns* (find-ns 'pedestal-controller.core)]
            (eval '(defcontroller Invalid
