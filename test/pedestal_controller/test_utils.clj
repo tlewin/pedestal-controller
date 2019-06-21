@@ -3,10 +3,11 @@
   (:import [clojure.lang Compiler Compiler$CompilerException]))
 
 ;; Original from https://github.com/clojure/clojure/blob/master/src/clj/clojure/test.clj#L518
-;; It's was changed to be compatible with Clojure 1.10.0 where the any exception
-;; raised during the macro expansion, it's wrapped in the Compiler$CompilerException
+;; It's was changed to be compatible with Clojure 1.10.0 where the exceptions
+;; raised during the macro expansion are wrapped into Compiler$CompilerException
+;; object.
 (defmethod assert-expr 'macro-thrown-with-msg? [msg form]
-  ;; (is (thrown-with-msg? c re expr))
+  ;; (is (macro-thrown-with-msg? c re expr))
   ;; Asserts that evaluating expr throws an exception of class c.
   ;; Also asserts that the message string of the exception matches
   ;; (with re-find) the regular expression re.
