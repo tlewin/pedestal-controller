@@ -10,18 +10,18 @@ making the entire process less error-prone and easy to maintain.
 
 ```clojure
 (defcontroller Product
-    (interceptors [default
-                   auth])
+  (interceptors [common-interceptors
+                 auth])
 
-    (handler create
-            (fn [request]
-                (let [{{data :data} :params} request]
-                (ring-resp/response (build-product! data)))))
+  (handler create
+           (fn [request]
+             (let [{{data :data} :params} request]
+               (ring-resp/response (build-product! data)))))
 
-    (handler search
-            (fn [request]
-                (let [{{query :query} :params} request]
-                (ring-resp/response (render (search query)))))))
+  (handler search
+           (fn [request]
+             (let [{{query :query} :params} request]
+               (ring-resp/response (render (search query)))))))
 
 (interceptors Product)    ;; [default auth]
 (handlers Product)        ;; {:create (fn ...) :search (fn ...)}
