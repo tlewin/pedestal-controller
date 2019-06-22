@@ -63,4 +63,16 @@
            (eval '(defcontroller TestController
                     (interceptors [:a])
                     (handler :h1 identity)
-                    (typo))))))))
+                    (typo)))))))
+  (testing "generates a controller"
+    (defn add-one [x] (inc x))
+    (defcontroller TestController
+      (interceptors [:a :b])
+      (handler :h1 identity)
+      (handler :h2 add-one))
+    (is (controller? TestController))
+    (is (= (.interceptors TestController) [:a :b]))
+    (is (= (.handlers TestController) {:h1 identity
+                                       :h2 add-one}))
+    (is (= (.handler TestController :h1) identity))
+    (is (= (.handler TestController :h2) add-one))))
