@@ -77,3 +77,28 @@
                                        :h2 add-one}))
     (is (= (.handler TestController :h1) identity))
     (is (= (.handler TestController :h2) add-one))))
+
+(defcontroller TestController
+  (interceptors [:common :auth])
+  (handler :h1 identity))
+
+(deftest test-remap-routes
+  (testing "returns a set"
+    (is (set? (remap-routes #{["/path" :get TestController :h1]}))))
+  (testing "expands the controller"
+    (is (= (remap-routes #{["/path" :get TestController :h1]})
+           #{["/path" :get [:common :auth identity] :route-name :test-h1]})))
+  (testing "don't overwrite the route-name attribute"
+    (is (= (remap-routes #{["/path" :get TestController :h1 :route-name :other]})
+           #{["/path" :get [:common :auth identity] :route-name :other]})))
+  (testing "preserves other arguments"
+    (is (= (remap-routes #{["/path" :get TestController :h1 :arg1 1 :arg2 2 :route-name :other]})
+           #{["/path" :get [:common :auth identity] :arg1 1 :arg2 2 :route-name :other]})))
+  (testing "preserves paths without controllers"
+    (is (= (remap-routes #{["/path" :get `inc :route-name :other]})
+           #{["/path" :get `inc :route-name :other]})))
+  (testing "fails if the handler is not found"
+    (is (thrown-with-msg?
+         AssertionError
+         #":h2 not found for :get /path"
+         (remap-routes #{["/path" :get TestController :h2 :route-name :other]})))))

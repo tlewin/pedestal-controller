@@ -1,4 +1,5 @@
-(ns pedestal-controller.core)
+(ns pedestal-controller.core
+  (:require [clojure.string :as str]))
 
 (defprotocol IController
   (interceptors [this])
@@ -21,6 +22,12 @@
     (nil? v) []
     (coll? v) v
     :else [v]))
+
+(defn- camel->kebab
+  [s]
+  (-> s
+      (str/replace #"(?<=[a-z0-9])([A-Z])" "-$1")
+      (str/lower-case)))
 
 (defn- reduce-controller-settings
   [settings]
@@ -60,5 +67,45 @@
   [o]
   (instance? Controller o))
 
+(defn- build-interceptors-handler-chain
+  [controller handler]
+  (let [interceptors (.interceptors controller)
+        handler-fn   (.handler controller handler)]
+    (if (some? handler-fn)
+      ;; NOTE: concat was choosen over conj to ensure that
+      ;; handler-fn is always the last element
+      (concat interceptors
+              [handler-fn]))))
+
+(defn- build-handler-name
+  [controller handler]
+  (let [prefix (-> controller
+                   (:controller-name)
+                   (name)
+                   (camel->kebab)
+                   (str/replace #"-?controller" ""))]
+    (keyword
+     (str prefix "-" (name handler)))))
+
+(defn- remap-route
+  [route]
+  (let [[path verb handler & args] route]
+    (if (controller? handler)
+      (let [controller       handler
+            [handler & args] args
+            handler-chain    (build-interceptors-handler-chain controller handler)]
+        (assert (some? handler-chain)
+                (str handler " not found for " verb " " path))
+        (remap-route
+         (concat [path verb handler-chain]
+                 (collify args)
+                 (if (some #(= :route-name %) args)
+                   [] ;; Add nothing
+                   [:route-name (build-handler-name controller handler)]))))
+      ;; Nothing to do here
+      route)))
+
 (defn remap-routes
-  [routes])
+  [routes]
+  (set
+   (map remap-route routes)))
