@@ -5,7 +5,8 @@
   (handlers [this])
   (handler [this handler-name]))
 
-(defrecord Controller [interceptors
+(defrecord Controller [controller-name
+                       interceptors
                        handlers]
   IController
   (interceptors [this] interceptors)
@@ -52,7 +53,8 @@
 (defmacro defcontroller
   [controller-name & settings]
   `(def ~controller-name
-     (Controller. ~@(reduce-controller-settings (map collify settings)))))
+     (Controller. ~(keyword controller-name)
+                  ~@(reduce-controller-settings (map collify settings)))))
 
 (defn controller?
   [o]

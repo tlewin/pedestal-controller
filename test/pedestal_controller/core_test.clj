@@ -71,6 +71,7 @@
       (handler :h1 identity)
       (handler :h2 add-one))
     (is (controller? TestController))
+    (is (= (:controller-name TestController) :TestController))
     (is (= (.interceptors TestController) [:a :b]))
     (is (= (.handlers TestController) {:h1 identity
                                        :h2 add-one}))
