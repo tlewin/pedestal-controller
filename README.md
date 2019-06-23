@@ -1,4 +1,4 @@
-# pedestal-controller [![Build Status](https://travis-ci.org/tlewin/pedestal-controller.svg?branch=master)](https://travis-ci.org/tlewin/pedestal-controller)
+# pedestal-controller [![Build Status](https://travis-ci.org/tlewin/pedestal-controller.svg?branch=master)](https://travis-ci.org/tlewin/pedestal-controller) [![Clojars Project](https://img.shields.io/clojars/v/pedestal-controller.svg)](https://clojars.org/pedestal-controller)
 
 Simple controller mechanism for [Pedestal](http://pedestal.io/) applications.
 
