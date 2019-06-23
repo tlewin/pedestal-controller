@@ -74,7 +74,7 @@
     (if (some? handler-fn)
       ;; NOTE: concat was choosen over conj to ensure that
       ;; handler-fn is always the last element
-      (concat interceptors
+      (concat (flatten interceptors)
               [handler-fn]))))
 
 (defn- build-handler-name

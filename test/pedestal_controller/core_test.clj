@@ -101,4 +101,11 @@
     (is (thrown-with-msg?
          AssertionError
          #":h2 not found for :get /path"
-         (remap-routes #{["/path" :get TestController :h2 :route-name :other]})))))
+         (remap-routes #{["/path" :get TestController :h2 :route-name :other]}))))
+  (testing "flattens the interceptors list"
+    (def common [:a :b])
+    (defcontroller TestController
+      (interceptors [common :auth])
+      (handler :h1 identity))
+    (is (= (remap-routes #{["/path" :get TestController :h1]})
+           #{["/path" :get [:a :b :auth identity] :route-name :test-h1]}))))
