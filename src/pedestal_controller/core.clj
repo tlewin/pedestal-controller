@@ -4,17 +4,8 @@
 (defprotocol IController
   (interceptors [this])
   (handlers [this])
-  (handler [this handler-name]))
-
-(defrecord Controller [controller-name
-                       interceptors
-                       handlers]
-  IController
-  (interceptors [this] interceptors)
-  (handlers [this] handlers)
-  (handler
-    [this handler-name]
-    (get handlers handler-name)))
+  (handler [this handler-name])
+  (handler-route-name [this handler-name]))
 
 (defn- collify
   [v]
@@ -28,6 +19,29 @@
   (-> s
       (str/replace #"(?<=[a-z0-9])([A-Z])" "-$1")
       (str/lower-case)))
+
+(def ^:private controller->prefix
+  (memoize
+   (fn [controller]
+     (-> controller
+         (:controller-name)
+         (name)
+         (camel->kebab)
+         (str/replace #"-?controller" "")))))
+
+(defrecord Controller [controller-name
+                       interceptors
+                       handlers]
+  IController
+  (interceptors [this] interceptors)
+  (handlers [this] handlers)
+  (handler
+    [this handler-name]
+    (get handlers handler-name))
+  (handler-route-name
+   [this handler-name]
+   (keyword
+    (str (controller->prefix this) "-" (name handler-name)))))
 
 (defn- reduce-controller-settings
   [settings]
@@ -77,16 +91,6 @@
       (concat (flatten interceptors)
               [handler-fn]))))
 
-(defn- build-handler-name
-  [controller handler]
-  (let [prefix (-> controller
-                   (:controller-name)
-                   (name)
-                   (camel->kebab)
-                   (str/replace #"-?controller" ""))]
-    (keyword
-     (str prefix "-" (name handler)))))
-
 (defn- remap-route
   [route]
   (let [[path verb handler & args] route]
@@ -101,7 +105,7 @@
                  (collify args)
                  (if (some #(= :route-name %) args)
                    [] ;; Add nothing
-                   [:route-name (build-handler-name controller handler)]))))
+                   [:route-name (.handler-route-name controller handler)]))))
       ;; Nothing to do here
       route)))
 

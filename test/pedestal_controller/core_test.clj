@@ -76,7 +76,9 @@
     (is (= (.handlers TestController) {:h1 identity
                                        :h2 add-one}))
     (is (= (.handler TestController :h1) identity))
-    (is (= (.handler TestController :h2) add-one))))
+    (is (= (.handler TestController :h2) add-one))
+    (is (= (.handler-route-name TestController :h1) :test-h1))
+    (is (= (.handler-route-name TestController :h2) :test-h2))))
 
 (defcontroller TestController
   (interceptors [:common :auth])
