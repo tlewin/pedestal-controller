@@ -8,11 +8,12 @@
   (handler-route-name [this handler-name]))
 
 (defn- collify
-  [v]
-  (cond
-    (nil? v) []
-    (coll? v) v
-    :else [v]))
+  ([v] (collify v {:as-vector? false}))
+  ([v options]
+   (cond
+     (nil? v) []
+     (coll? v) (if (:as-vector? options) (vec v) v)
+     :else [v])))
 
 (defn- camel->kebab
   [s]
@@ -54,7 +55,7 @@
                  "interceptors is defined more than once.")
          (assert (= (count params) 1)
                  "Invalid arguments for interceptors: (interceptors [...]).")
-         [(collify (first params)) handlers])
+         [(collify (first params) {:as-vector? true}) handlers])
 
        handler
        (let [[handler-name handler-fn] params
@@ -71,11 +72,38 @@
    [[] {}]
    settings))
 
+(defn- parse-interceptor
+  [handlers interceptor]
+  (let [interceptor                  (collify interceptor {:as-vector? true})
+        [item modifier handler-list] interceptor
+        handler-list                 (collify handler-list {:as-vector? true})
+        all-handlers-names           (set (keys handlers))
+        missing-handlers             (filter (comp not all-handlers-names) handler-list)]
+    (case (count interceptor)
+      1 interceptor
+      3 (do
+          (assert (#{:only :except} modifier)
+                  (str "Invalid modifier (" modifier ") in the interceptor list."))
+          (assert (empty? missing-handlers)
+                  (str "Handler(s) not found ("
+                       (str/join ", " missing-handlers)
+                       ") in the interceptors definitions"))
+          [item modifier handler-list])
+      (assert false
+              "Invalid interceptor definition: [interceptor [:only|:except] handler-list]"))))
+
+(defn- parse-controller-settings
+  [settings]
+  (let [settings                (collify settings)
+        [interceptors handlers] (reduce-controller-settings settings)
+        interceptors            (vec (map (partial parse-interceptor handlers) interceptors))]
+    [interceptors handlers]))
+
 (defmacro defcontroller
   [controller-name & settings]
   `(def ~controller-name
      (Controller. ~(keyword controller-name)
-                  ~@(reduce-controller-settings (map collify settings)))))
+                  ~@(parse-controller-settings settings))))
 
 (defn controller?
   [o]
@@ -88,8 +116,19 @@
     (if (some? handler-fn)
       ;; NOTE: concat was choosen over conj to ensure that
       ;; handler-fn is always the last element
-      (concat (flatten interceptors)
-              [handler-fn]))))
+      (concat
+       (flatten
+        (reduce
+         (fn [memo [interceptor modifier handler-list]]
+           (if (or (nil? modifier)
+                   (cond->> (some #(= handler %) handler-list)
+                     (= modifier :only) (identity)
+                     (= modifier :except) (not)))
+             (concat memo [interceptor])
+             memo))
+         []
+         interceptors))
+       [handler-fn]))))
 
 (defn- remap-route
   [route]
