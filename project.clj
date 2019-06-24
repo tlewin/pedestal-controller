@@ -1,4 +1,4 @@
-(defproject pedestal-controller "0.1.0"
+(defproject pedestal-controller "0.1.1"
   :description "Simple controller mechanism for Pedestal applications"
   :url "https://github.com/tlewin/pedestal-controller"
   :license {:name "Eclipse Public License"
