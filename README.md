@@ -11,8 +11,8 @@ making the entire process less error-prone and easy to maintain.
 ```clojure
 (defcontroller Product
   (interceptors [common-interceptors
-                 auth :only [:create]
-                 json-body :except [:search]])
+                 [auth :only [:create]]
+                 [json-body :except [:search]]])
 
   (handler create
            (fn [request]
