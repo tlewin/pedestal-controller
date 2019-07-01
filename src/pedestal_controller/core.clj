@@ -116,19 +116,20 @@
     (if (some? handler-fn)
       ;; NOTE: concat was choosen over conj to ensure that
       ;; handler-fn is always the last element
-      (concat
-       (flatten
-        (reduce
-         (fn [memo [interceptor modifier handler-list]]
-           (if (or (nil? modifier)
-                   (cond->> (some #(= handler %) handler-list)
-                     (= modifier :only) (identity)
-                     (= modifier :except) (not)))
-             (concat memo [interceptor])
-             memo))
-         []
-         interceptors))
-       [handler-fn]))))
+      (vec
+       (concat
+        (flatten
+         (reduce
+          (fn [memo [interceptor modifier handler-list]]
+            (if (or (nil? modifier)
+                    (cond->> (some #(= handler %) handler-list)
+                      (= modifier :only) (identity)
+                      (= modifier :except) (not)))
+              (concat memo [interceptor])
+              memo))
+          []
+          interceptors))
+        [handler-fn])))))
 
 (defn- remap-route
   [route]
@@ -146,7 +147,7 @@
                    [] ;; Add nothing
                    [:route-name (.handler-route-name controller handler)]))))
       ;; Nothing to do here
-      route)))
+      (vec route))))
 
 (defn remap-routes
   [routes]

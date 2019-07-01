@@ -149,6 +149,18 @@
       (handler :h1 identity))
     (is (= (remap-routes #{["/path" :get TestController :h1]})
            #{["/path" :get [:a :b :auth identity] :route-name :test-h1]})))
+  (testing "returns the path and interceptors in a vector"
+    (def common [:a :b])
+    (defcontroller TestController
+      (interceptors [common :auth])
+      (handler :h1 identity))
+    (let [routes        (remap-routes #{["/path" :get TestController :h1]})
+          route         (first routes)
+          [path
+           verb
+           interceptors] route]
+      (is (vector? route))
+      (is (vector? interceptors))))
   (testing "applies the modifiers when build the interceptors list"
     (def common [:a :b])
     (defcontroller TestController
